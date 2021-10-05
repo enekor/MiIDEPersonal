@@ -12,7 +12,7 @@
     <version>1.0-SNAPSHOT</version>
     <name>NekoIDE Tapestry 5 Application</name>
 	<properties>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <tapestry-version>5.7.3</tapestry-version>
         <tapestry-testify-version>1.0.4</tapestry-testify-version>
         <tapestry-xpath-version>1.0.1</tapestry-xpath-version>
@@ -194,6 +194,11 @@
             <version>${servlet-api-version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 	<build>
 		<plugins>
@@ -201,6 +206,14 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
 	</build>
 </project>
