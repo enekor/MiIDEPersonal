@@ -19,33 +19,37 @@ public class IdeTriste extends JFrame {
     private JButton build;
     private JButton save;
     private JMenuBar menu;
-    private JMenuItem file;
-    private JMenuItem view;
-    private JMenuItem help;
+    private JMenu file;
+    private JMenu view;
+    private JMenu help;
     private JMenuItem open;
     private JMenuItem newFile;
+    private JMenuItem saveas;
 
-    private Path opened;
+    private String opened;
 
     IdeTriste(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         init();
+
     }
 
 
     public void init(){
         play = new JButton();
         build = new JButton();
-        save = new JButton();
+        save = new JButton("save");
         menu = new JMenuBar();
-        file = new JMenuItem("file");
-        view = new JMenuItem("view");
-        help = new JMenuItem("help");
+        file = new JMenu("file");
+        view = new JMenu("view");
+        help = new JMenu("help");
         open = new JMenuItem("Open");
         newFile = new JMenuItem("New");
+        saveas = new JMenuItem("save as");
 
         file.add(newFile);
         file.add(open);
+        file.add(saveas);
 
         botones.add(save);
         botones.add(build);
@@ -55,7 +59,9 @@ public class IdeTriste extends JFrame {
         menu.add(view);
         menu.add(help);
 
-
+        this.setJMenuBar(menu);
+        this.add(principal);
+        this.pack();
 
         addListeners();
 
@@ -65,33 +71,82 @@ public class IdeTriste extends JFrame {
         save.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                save();
+                File file = new File(opened);
+                save(file);
+            }
+        });
+
+        open.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                open();
+            }
+        });
+
+        saveas.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                guardarComo();
+            }
+        });
+
+        play.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pruebaprint();
             }
         });
     }
 
-    private void save(){
-        try {
-            Files.write(opened, texto.getText().getBytes());
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null,"no se ha podido guardar el archivo");
-            e.printStackTrace();
-        }
+    private void save(File archivo){
+       try{
+           BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
+           bw.write(texto.getText());
+           bw.flush();
+           bw.close();
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+       JOptionPane.showMessageDialog(null,"Guardado");
     }
 
     private void open(){
-        opened=Path.of(new JFileChooser().getSelectedFile().getAbsolutePath());
+
         try {
 
-            File archivo = new File(String.valueOf(opened));
+            JFileChooser fc = new JFileChooser();
+            File archivo=null;
+
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            int selectVal = fc.showOpenDialog(this);
+
+            if(selectVal==JFileChooser.APPROVE_OPTION){
+                archivo = fc.getSelectedFile();
+                opened = archivo.getAbsolutePath();
+                texto.setText(null);
+            }
+
+
             String textoString;
             BufferedReader br = new BufferedReader(new FileReader(archivo));
             while((textoString=br.readLine())!=null){
                 texto.setText(texto.getText()+"\n"+textoString);
             }
+
             br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void guardarComo(){
+        JFileChooser fc = new JFileChooser();
+        int selectVal = fc.showSaveDialog(this);
+        File newFile = fc.getSelectedFile();;
+        save(newFile);
+    }
+
+    private void pruebaprint(){
+        System.out.println(texto.getText());
     }
 }

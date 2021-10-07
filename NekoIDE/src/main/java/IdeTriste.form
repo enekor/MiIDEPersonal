@@ -46,12 +46,19 @@
                       </component>
                     </children>
                   </scrollpane>
-                  <component id="2fc64" class="javax.swing.JTextArea" binding="texto">
+                  <scrollpane id="7519b">
                     <constraints>
                       <splitpane position="right"/>
                     </constraints>
                     <properties/>
-                  </component>
+                    <border type="none"/>
+                    <children>
+                      <component id="2fc64" class="javax.swing.JTextArea" binding="texto">
+                        <constraints/>
+                        <properties/>
+                      </component>
+                    </children>
+                  </scrollpane>
                 </children>
               </splitpane>
             </children>
