@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -8,7 +9,7 @@ import java.nio.file.Path;
 public class IdeTriste extends JFrame {
     private JPanel principal;
     private JSplitPane SplitVertical;
-    private JTextPane Terminal;
+    private JTextArea Terminal;
     private JTree carpetas;
     private JTextArea texto;
     private JSplitPane SplitHorizontal;
@@ -26,7 +27,7 @@ public class IdeTriste extends JFrame {
     private JMenuItem newFile;
     private JMenuItem saveas;
 
-    private String opened;
+    private String opened=null;
 
     IdeTriste(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -36,8 +37,8 @@ public class IdeTriste extends JFrame {
 
 
     public void init(){
-        play = new JButton();
-        build = new JButton();
+        play = new JButton("play");
+        build = new JButton("build");
         save = new JButton("save");
         menu = new JMenuBar();
         file = new JMenu("file");
@@ -59,9 +60,12 @@ public class IdeTriste extends JFrame {
         menu.add(view);
         menu.add(help);
 
+        this.setPreferredSize(new Dimension(getMaximumSize()));
+
         this.setJMenuBar(menu);
         this.add(principal);
         this.pack();
+
 
         addListeners();
 
@@ -72,7 +76,7 @@ public class IdeTriste extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 File file = new File(opened);
-                save(file);
+                save(file,false);
             }
         });
 
@@ -86,28 +90,46 @@ public class IdeTriste extends JFrame {
         saveas.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                guardarComo();
+                guardarComo(false);
             }
         });
 
         play.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                pruebaprint();
+                play();
+            }
+        });
+        build.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                build();
+            }
+        });
+
+        newFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                newFile();
             }
         });
     }
 
-    private void save(File archivo){
-       try{
-           BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
-           bw.write(texto.getText());
-           bw.flush();
-           bw.close();
-       } catch (IOException e) {
-           e.printStackTrace();
-       }
+    private void save(File archivo,boolean nuevo){
+        if(!nuevo) {
+            try {
+                BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
+
+                bw.write(texto.getText());
+                bw.flush();
+                bw.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
        JOptionPane.showMessageDialog(null,"Guardado");
+       opened = archivo.getAbsolutePath();
     }
 
     private void open(){
@@ -133,20 +155,73 @@ public class IdeTriste extends JFrame {
                 texto.setText(texto.getText()+"\n"+textoString);
             }
 
+            opened = archivo.getAbsolutePath();
+
             br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void guardarComo(boolean nuevo){
+        JFileChooser fc = new JFileChooser();
+        int selectVal = fc.showSaveDialog(this);
+        File newFile = fc.getSelectedFile();
+        save(newFile,nuevo);
+    }
+
+    private void build(){
+        try {
+            String comando = "cmd.exe /C javac "+opened;
+            Process proceso = Runtime.getRuntime().exec(comando);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void guardarComo(){
-        JFileChooser fc = new JFileChooser();
-        int selectVal = fc.showSaveDialog(this);
-        File newFile = fc.getSelectedFile();;
-        save(newFile);
+    private void play(){
+        if(opened==null){
+            guardarComo(false);
+        }
+        try {
+            String comando = "cmd.exe /C java "+opened;
+            Terminal.setText("ejecutando");
+            Process proceso = Runtime.getRuntime().exec(comando);
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(proceso.getInputStream()));
+            String line;
+            while((line=br.readLine())!=null){
+                Terminal.setText("\n"+Terminal.getText()+"\n"+line+"\n");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void pruebaprint(){
-        System.out.println(texto.getText());
+    private void nuevo(){
+        guardarComo(true);
+        texto.setText(null);
     }
+
+    private void newFile(){
+        if(texto.getText()!=null){
+            int ans = JOptionPane.showOptionDialog(
+                    null,"quieres guardar el archivo antes de crear uno nuevo?","Crear nuevo archivo",JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE,
+                    null,null,null);
+            if (ans==JOptionPane.YES_OPTION){
+                if(opened!=null){
+                    save(new File(opened),false);
+                }else{
+                    guardarComo(false);
+                }
+            }
+        }
+        JOptionPane.showMessageDialog(null,"donde quieres guardarlo");
+        nuevo();
+    }
+
+
 }
