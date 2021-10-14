@@ -3,8 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayList;
 
 public class IdeTriste extends JFrame {
     private JPanel principal;
@@ -28,6 +27,9 @@ public class IdeTriste extends JFrame {
     private JMenuItem saveas;
 
     private String opened=null;
+    private int documentoAbierto;
+    private ArrayList<Documento> documentos = new ArrayList<>();
+
 
     IdeTriste(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -83,7 +85,11 @@ public class IdeTriste extends JFrame {
         open.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                open();
+                try {
+                    open();
+                }catch(IOException g){
+                    g.printStackTrace();
+                }
             }
         });
 
@@ -107,10 +113,14 @@ public class IdeTriste extends JFrame {
             }
         });
 
-        newFile.addActionListener(new ActionListener() {
+        newFile.addActionListener(new ActionListener(){
             @Override
-            public void actionPerformed(ActionEvent e) {
-                newFile();
+            public void actionPerformed(ActionEvent e){
+                try {
+                    newFile();
+                }catch(IOException f){
+                    f.printStackTrace();
+                }
             }
         });
     }
@@ -132,37 +142,15 @@ public class IdeTriste extends JFrame {
        opened = archivo.getAbsolutePath();
     }
 
-    private void open(){
+    private void open() throws IOException{
+        JFileChooser fc = new JFileChooser();
+        int returnValue = fc.showOpenDialog(this);
 
-        try {
-
-            JFileChooser fc = new JFileChooser();
-            File archivo=null;
-
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            int selectVal = fc.showOpenDialog(this);
-
-            if(selectVal==JFileChooser.APPROVE_OPTION){
-                archivo = fc.getSelectedFile();
-                opened = archivo.getAbsolutePath();
-                texto.setText(null);
-            }
-
-
-            String textoString;
-            BufferedReader br = new BufferedReader(new FileReader(archivo));
-            while((textoString=br.readLine())!=null){
-                texto.setText(texto.getText()+"\n"+textoString);
-            }
-
-            opened = archivo.getAbsolutePath();
-
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (returnValue==JFileChooser.APPROVE_OPTION){
+            documentos.add(new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1));
+            documentoAbierto=documentos.size();
+            texto.setText(documentos.get(documentoAbierto-1).getContenido());
         }
-
-
     }
 
     private void guardarComo(boolean nuevo){
@@ -182,11 +170,8 @@ public class IdeTriste extends JFrame {
     }
 
     private void play(){
-        if(opened==null){
-            guardarComo(false);
-        }
         try {
-            String comando = "cmd.exe /C java "+opened;
+            String comando = "cmd.exe /C java "+documentos.get(documentoAbierto-1).getPath();
             Terminal.setText("ejecutando");
             Process proceso = Runtime.getRuntime().exec(comando);
             BufferedReader br = new BufferedReader(
@@ -206,21 +191,15 @@ public class IdeTriste extends JFrame {
         texto.setText(null);
     }
 
-    private void newFile(){
-        if(texto.getText()!=null){
-            int ans = JOptionPane.showOptionDialog(
-                    null,"quieres guardar el archivo antes de crear uno nuevo?","Crear nuevo archivo",JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE,
-                    null,null,null);
-            if (ans==JOptionPane.YES_OPTION){
-                if(opened!=null){
-                    save(new File(opened),false);
-                }else{
-                    guardarComo(false);
-                }
-            }
+    private void newFile() throws IOException {
+        JFileChooser fc = new JFileChooser();
+        int returnValue = fc.showSaveDialog(this);
+
+        if (returnValue==JFileChooser.APPROVE_OPTION){
+            documentos.add(new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1));
+            documentoAbierto=documentos.size();
+            texto.setText(documentos.get(documentoAbierto).getContenido());
         }
-        JOptionPane.showMessageDialog(null,"donde quieres guardarlo");
-        nuevo();
     }
 
 
