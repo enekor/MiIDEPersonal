@@ -1,4 +1,5 @@
 import lombok.Data;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Data
+@Getter
 public class Documento {
 
     private int id;
@@ -31,5 +33,9 @@ public class Documento {
     private void setContent() throws IOException {
         List<String> lineas = Files.readAllLines(uri);
         lineas.forEach(s -> contenido+=s+"\n");
+    }
+
+    public String toString(){
+        return this.nombre;
     }
 }
