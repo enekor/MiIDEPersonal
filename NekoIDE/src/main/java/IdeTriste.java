@@ -1,10 +1,17 @@
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.print.PrinterException;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class IdeTriste extends JFrame {
     private JPanel principal;
@@ -21,13 +28,25 @@ public class IdeTriste extends JFrame {
     private JButton save;
     private JMenuBar menu;
     private JMenu file;
-    private JMenu view;
     private JMenu help;
+    private JMenu edit;
     private JMenuItem open;
     private JMenuItem newFile;
     private JMenuItem saveas;
+    private JMenuItem copy;
+    private JMenuItem paste;
+    private JMenuItem erase;
+    private JMenuItem about;
+    private JMenuItem cut;
+    private UndoManager um;
+    private JMenuItem documents;
+    private JMenuItem print;
+    private JList lista;
 
     private String opened=null;
+    private int documentoAbierto;
+    private ArrayList<Documento> documentos = new ArrayList<>();
+
 
     IdeTriste(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -42,23 +61,40 @@ public class IdeTriste extends JFrame {
         save = new JButton("save");
         menu = new JMenuBar();
         file = new JMenu("file");
-        view = new JMenu("view");
         help = new JMenu("help");
         open = new JMenuItem("Open");
         newFile = new JMenuItem("New");
         saveas = new JMenuItem("save as");
+        edit = new JMenu("edit");
+        copy = new JMenuItem("copy");
+        paste = new JMenuItem("paste");
+        erase = new JMenuItem("Erase");
+        about = new JMenuItem("about IDETriste");
+        cut = new JMenuItem("cut");
+        um = new UndoManager();
+        documents = new JMenuItem("documents");
+        print = new JMenuItem("print");
 
         file.add(newFile);
         file.add(open);
         file.add(saveas);
+        file.add(print);
+
+        help.add(about);
+
+        edit.add(copy);
+        edit.add(paste);
+        edit.add(erase);
+        edit.add(cut);
 
         botones.add(save);
         botones.add(build);
         botones.add(play);
 
         menu.add(file);
-        menu.add(view);
         menu.add(help);
+        menu.add(edit);
+        menu.add(documents);
 
         this.setPreferredSize(new Dimension(getMaximumSize()));
 
@@ -83,7 +119,11 @@ public class IdeTriste extends JFrame {
         open.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                open();
+                try {
+                    open();
+                }catch(IOException g){
+                    g.printStackTrace();
+                }
             }
         });
 
@@ -107,12 +147,104 @@ public class IdeTriste extends JFrame {
             }
         });
 
-        newFile.addActionListener(new ActionListener() {
+        newFile.addActionListener(new ActionListener(){
             @Override
-            public void actionPerformed(ActionEvent e) {
-                newFile();
+            public void actionPerformed(ActionEvent e){
+                try {
+                    newFile();
+                }catch(IOException f){
+                    f.printStackTrace();
+                }
             }
         });
+
+        copy.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                texto.copy();
+            }
+        });
+
+        paste.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                texto.paste();
+            }
+        });
+
+        about.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Desktop d = Desktop.getDesktop();
+                try {
+                    d.browse(new URI("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                } catch (IOException | URISyntaxException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        erase.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        cut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                texto.cut();
+            }
+        });
+
+        texto.getDocument().addUndoableEditListener(new UndoableEditListener() {
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                um.addEdit(e.getEdit());
+            }
+        });
+
+        erase.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(um.canUndo()){
+                    um.undo();
+                }
+            }
+        });
+
+        print.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    texto.print();
+                } catch (PrinterException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        documents.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(documentos.isEmpty()){
+                    JOptionPane.showMessageDialog(null,"no hay documentos abiertos");
+                }else {
+                    JFrame panel = new JFrame();
+                    panel.add(lista);
+                    panel.pack();
+                    panel.setVisible(true);
+                    lista.addListSelectionListener(new ListSelectionListener() {
+                        @Override
+                        public void valueChanged(ListSelectionEvent e) {
+                            abrir(lista.getSelectedIndex());
+                        }
+                    });
+                }
+            }
+        });
+
+
     }
 
     private void save(File archivo,boolean nuevo){
@@ -132,37 +264,16 @@ public class IdeTriste extends JFrame {
        opened = archivo.getAbsolutePath();
     }
 
-    private void open(){
+    private void open() throws IOException{
+        JFileChooser fc = new JFileChooser();
+        int returnValue = fc.showOpenDialog(this);
 
-        try {
-
-            JFileChooser fc = new JFileChooser();
-            File archivo=null;
-
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            int selectVal = fc.showOpenDialog(this);
-
-            if(selectVal==JFileChooser.APPROVE_OPTION){
-                archivo = fc.getSelectedFile();
-                opened = archivo.getAbsolutePath();
-                texto.setText(null);
-            }
-
-
-            String textoString;
-            BufferedReader br = new BufferedReader(new FileReader(archivo));
-            while((textoString=br.readLine())!=null){
-                texto.setText(texto.getText()+"\n"+textoString);
-            }
-
-            opened = archivo.getAbsolutePath();
-
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (returnValue==JFileChooser.APPROVE_OPTION){
+            documentos.add(new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1));
+            documentoAbierto=documentos.size()-1;
+            texto.setText(documentos.get(documentoAbierto-1).getContenido());
         }
-
-
+        nuevoDocumento();
     }
 
     private void guardarComo(boolean nuevo){
@@ -182,11 +293,8 @@ public class IdeTriste extends JFrame {
     }
 
     private void play(){
-        if(opened==null){
-            guardarComo(false);
-        }
         try {
-            String comando = "cmd.exe /C java "+opened;
+            String comando = "cmd.exe /C java "+documentos.get(documentoAbierto-1).getPath();
             Terminal.setText("ejecutando");
             Process proceso = Runtime.getRuntime().exec(comando);
             BufferedReader br = new BufferedReader(
@@ -206,22 +314,28 @@ public class IdeTriste extends JFrame {
         texto.setText(null);
     }
 
-    private void newFile(){
-        if(texto.getText()!=null){
-            int ans = JOptionPane.showOptionDialog(
-                    null,"quieres guardar el archivo antes de crear uno nuevo?","Crear nuevo archivo",JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE,
-                    null,null,null);
-            if (ans==JOptionPane.YES_OPTION){
-                if(opened!=null){
-                    save(new File(opened),false);
-                }else{
-                    guardarComo(false);
-                }
-            }
+    private void newFile() throws IOException {
+        JFileChooser fc = new JFileChooser();
+        int returnValue = fc.showSaveDialog(this);
+
+        if (returnValue==JFileChooser.APPROVE_OPTION){
+            documentos.add(new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1));
+            documentoAbierto=documentos.size()-1;
+            texto.setText(documentos.get(documentoAbierto).getContenido());
         }
-        JOptionPane.showMessageDialog(null,"donde quieres guardarlo");
-        nuevo();
+        nuevoDocumento();
     }
 
+    private void nuevoDocumento(){
+        Documentos d = Documentos.Documents(documentos.size(),documentos);
+        lista = new JList(d.getDocumentos());
+
+    }
+
+    private void abrir (int id){
+        documentos.get(documentoAbierto).setContenido(texto.getText());
+        texto.setText(documentos.get(id).getContenido());
+        documentoAbierto = id;
+    }
 
 }
