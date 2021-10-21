@@ -263,7 +263,7 @@ public class IdeTriste extends JFrame {
 
     private void play(){
         try {
-            String comando = "cmd.exe /C java "+documentos.get(opened -1).getPath();
+            String comando = "cmd.exe /C java "+documentos.get(opened).getPath();
             Terminal.setText("ejecutando");
             Process proceso = Runtime.getRuntime().exec(comando);
             BufferedReader br = new BufferedReader(
