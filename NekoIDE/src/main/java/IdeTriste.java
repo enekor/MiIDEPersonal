@@ -12,6 +12,8 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class IdeTriste extends JFrame {
     private JPanel principal;
@@ -44,7 +46,7 @@ public class IdeTriste extends JFrame {
     private JList lista;
 
     private int opened;
-    private ArrayList<Documento> documentos = new ArrayList<>();
+    private Map<Integer,Documento> documentos = new HashMap<>();
 
     IdeTriste(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -278,19 +280,14 @@ public class IdeTriste extends JFrame {
         }
     }
 
-    private void nuevoDocumento(){
-        Documentos d = Documentos.Documents(documentos.size(),documentos);
-        lista = new JList(d.getDocumentos());
-
-    }
-
     /**
      * abrir un documento desde la lista de documentos abiertos
      * @param id del documento seleccionado
      */
     private void abrir (int id){
         documentos.get(opened).setContenido(texto.getText());
-        texto.setText(documentos.get(id).getContenido());
+        String a = documentos.get(id).getContenido();
+        texto.setText(a);
         opened = id;
     }
 
@@ -303,11 +300,11 @@ public class IdeTriste extends JFrame {
         int returnValue = fc.showOpenDialog(this);
 
         if (returnValue==JFileChooser.APPROVE_OPTION){
-            documentos.add(new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()));
+            Documento d = new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1);
+            documentos.put(lista.getComponentCount(), d);
             opened =documentos.size()-1;
             texto.setText(documentos.get(opened).getContenido());
         }
-        nuevoDocumento();
     }
 
     private void saveAs() throws IOException{
@@ -322,7 +319,7 @@ public class IdeTriste extends JFrame {
             opened = doc.getId();
             JOptionPane.showMessageDialog(null,"guardado");
         }
-        nuevoDocumento();
+
     }
 
     private void save(){
