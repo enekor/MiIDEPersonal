@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -19,11 +20,12 @@ public class IdeTriste extends JFrame {
     private JPanel principal;
     private JSplitPane SplitVertical;
     private JTextArea Terminal;
-    private JTree carpetas;
     private JTextArea texto;
     private JSplitPane SplitHorizontal;
     private JPanel panelTop;
     private JPanel botones;
+    private JScrollPane scrollLateral;
+    private JList listaScroll;
 
     private JButton play;
     private JButton build;
@@ -241,7 +243,7 @@ public class IdeTriste extends JFrame {
                     lista.addListSelectionListener(new ListSelectionListener() {
                         @Override
                         public void valueChanged(ListSelectionEvent e) {
-                            abrir(lista.getSelectedIndex()-1);
+                            abrir(lista.getSelectedIndex());
                             panel.dispose();
                         }
                     });
@@ -301,8 +303,9 @@ public class IdeTriste extends JFrame {
 
         if (returnValue==JFileChooser.APPROVE_OPTION){
             Documento d = new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1);
-            documentos.put(lista.getComponentCount(), d);
+            documentos.put(documentos.size(), d);
             opened =documentos.size()-1;
+            createList();
             texto.setText(documentos.get(opened).getContenido());
         }
     }
@@ -315,8 +318,9 @@ public class IdeTriste extends JFrame {
             File archivo = fc.getSelectedFile();
             saveTextToFile(archivo);
             Documento doc = new Documento(archivo,archivo.getName(),"java",documentos.size()+1);
-            documentos.add(doc);
-            opened = doc.getId();
+            documentos.put(documentos.size(), doc);
+            opened = documentos.size()-1;
+            createList();
             JOptionPane.showMessageDialog(null,"guardado");
         }
 
@@ -337,5 +341,14 @@ public class IdeTriste extends JFrame {
         }catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    private void createList(){
+        String[] list = new String[documentos.size()];
+        for(int i = 0; i < documentos.size(); i++){
+            list[i]=documentos.get(i).getNombre();
+        }
+        //lista = new JList(list);
+        listaScroll = new JList(list);
     }
 }

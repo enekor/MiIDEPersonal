@@ -20,7 +20,7 @@
               <splitpane position="right"/>
             </constraints>
             <properties>
-              <text value="Label"/>
+              <text value="terminal"/>
             </properties>
           </component>
           <grid id="24183" binding="panelTop" layout-manager="BorderLayout" hgap="0" vgap="0">
@@ -35,14 +35,14 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <scrollpane id="a7420">
+                  <scrollpane id="a7420" binding="scrollLateral">
                     <constraints>
                       <splitpane position="left"/>
                     </constraints>
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="deb5f" class="javax.swing.JTree" binding="carpetas">
+                      <component id="a54b" class="javax.swing.JList" binding="listaScroll">
                         <constraints/>
                         <properties/>
                       </component>
