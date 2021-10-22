@@ -15,7 +15,7 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="f390d" class="javax.swing.JTextArea" binding="Terminal">
+          <component id="f390d" class="javax.swing.JTextArea" binding="texto">
             <constraints>
               <splitpane position="right"/>
             </constraints>
@@ -55,7 +55,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="2fc64" class="javax.swing.JTextArea" binding="texto">
+                      <component id="2fc64" class="javax.swing.JTextArea" binding="Terminal">
                         <constraints/>
                         <properties/>
                       </component>

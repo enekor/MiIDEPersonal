@@ -9,18 +9,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class IdeTriste extends JFrame {
     private JPanel principal;
     private JSplitPane SplitVertical;
-    private JTextArea Terminal;
     private JTextArea texto;
+    private JTextArea Terminal;
     private JSplitPane SplitHorizontal;
     private JPanel panelTop;
     private JPanel botones;
@@ -173,14 +171,14 @@ public class IdeTriste extends JFrame {
         copy.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                texto.copy();
+                Terminal.copy();
             }
         });
 
         paste.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                texto.paste();
+                Terminal.paste();
             }
         });
 
@@ -199,11 +197,11 @@ public class IdeTriste extends JFrame {
         cut.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                texto.cut();
+                Terminal.cut();
             }
         });
 
-        texto.getDocument().addUndoableEditListener(new UndoableEditListener() {
+        Terminal.getDocument().addUndoableEditListener(new UndoableEditListener() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
                 um.addEdit(e.getEdit());
@@ -223,7 +221,7 @@ public class IdeTriste extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    texto.print();
+                    Terminal.print();
                 } catch (PrinterException ex) {
                     ex.printStackTrace();
                 }
@@ -248,6 +246,12 @@ public class IdeTriste extends JFrame {
                         }
                     });
                 }
+            }
+        });
+        listaScroll.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                abrir(listaScroll.getSelectedIndex());
             }
         });
     }
@@ -335,7 +339,7 @@ public class IdeTriste extends JFrame {
     private void saveTextToFile(File archivo){
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
-            bw.write(texto.getText());
+            bw.write(Terminal.getText());
             bw.flush();
             bw.close();
         }catch (IOException e){
@@ -348,7 +352,7 @@ public class IdeTriste extends JFrame {
         for(int i = 0; i < documentos.size(); i++){
             list[i]=documentos.get(i).getNombre();
         }
-        //lista = new JList(list);
-        listaScroll = new JList(list);
+        lista = new JList(list);
+        listaScroll.setListData(list);
     }
 }
