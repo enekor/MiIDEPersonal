@@ -66,7 +66,7 @@ public class IdeTriste extends JFrame {
         edit = new JMenu("edit");
         copy = new JMenuItem("copy");
         paste = new JMenuItem("paste");
-        erase = new JMenuItem("Erase");
+        erase = new JMenuItem("Undo");
         about = new JMenuItem("about IDETriste");
         cut = new JMenuItem("cut");
         um = new UndoManager();
@@ -171,14 +171,14 @@ public class IdeTriste extends JFrame {
         copy.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Terminal.copy();
+                texto.copy();
             }
         });
 
         paste.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Terminal.paste();
+                texto.paste();
             }
         });
 
@@ -197,11 +197,11 @@ public class IdeTriste extends JFrame {
         cut.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Terminal.cut();
+                texto.cut();
             }
         });
 
-        Terminal.getDocument().addUndoableEditListener(new UndoableEditListener() {
+        texto.getDocument().addUndoableEditListener(new UndoableEditListener() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
                 um.addEdit(e.getEdit());
@@ -221,7 +221,7 @@ public class IdeTriste extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    Terminal.print();
+                    texto.print();
                 } catch (PrinterException ex) {
                     ex.printStackTrace();
                 }
@@ -270,6 +270,13 @@ public class IdeTriste extends JFrame {
     }
 
     private void play(){
+        if(documentos.isEmpty()){
+            try {
+                saveAs();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         try {
             String comando = "cmd.exe /C java "+documentos.get(opened).getPath();
             Terminal.setText("ejecutando");
@@ -339,7 +346,7 @@ public class IdeTriste extends JFrame {
     private void saveTextToFile(File archivo){
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
-            bw.write(Terminal.getText());
+            bw.write(texto.getText());
             bw.flush();
             bw.close();
         }catch (IOException e){
