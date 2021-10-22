@@ -9,19 +9,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class IdeTriste extends JFrame {
     private JPanel principal;
     private JSplitPane SplitVertical;
     private JTextArea Terminal;
-    private JTree carpetas;
     private JTextArea texto;
     private JSplitPane SplitHorizontal;
     private JPanel panelTop;
     private JPanel botones;
+    private JScrollPane scrollLateral;
+    private JList listaScroll;
 
     private JButton play;
     private JButton build;
@@ -44,7 +48,7 @@ public class IdeTriste extends JFrame {
     private JList lista;
 
     private int opened;
-    private ArrayList<Documento> documentos = new ArrayList<>();
+    private Map<Integer,Documento> documentos = new HashMap<>();
 
     IdeTriste(){
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -239,7 +243,7 @@ public class IdeTriste extends JFrame {
                     lista.addListSelectionListener(new ListSelectionListener() {
                         @Override
                         public void valueChanged(ListSelectionEvent e) {
-                            abrir(lista.getSelectedIndex()-1);
+                            abrir(lista.getSelectedIndex());
                             panel.dispose();
                         }
                     });
@@ -278,19 +282,14 @@ public class IdeTriste extends JFrame {
         }
     }
 
-    private void nuevoDocumento(){
-        Documentos d = Documentos.Documents(documentos.size(),documentos);
-        lista = new JList(d.getDocumentos());
-
-    }
-
     /**
      * abrir un documento desde la lista de documentos abiertos
      * @param id del documento seleccionado
      */
     private void abrir (int id){
         documentos.get(opened).setContenido(texto.getText());
-        texto.setText(documentos.get(id).getContenido());
+        String a = documentos.get(id).getContenido();
+        texto.setText(a);
         opened = id;
     }
 
@@ -303,11 +302,12 @@ public class IdeTriste extends JFrame {
         int returnValue = fc.showOpenDialog(this);
 
         if (returnValue==JFileChooser.APPROVE_OPTION){
-            documentos.add(new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()));
+            Documento d = new Documento(fc.getSelectedFile(),fc.getSelectedFile().getName(),"java",documentos.size()+1);
+            documentos.put(documentos.size(), d);
             opened =documentos.size()-1;
+            createList();
             texto.setText(documentos.get(opened).getContenido());
         }
-        nuevoDocumento();
     }
 
     private void saveAs() throws IOException{
@@ -318,11 +318,12 @@ public class IdeTriste extends JFrame {
             File archivo = fc.getSelectedFile();
             saveTextToFile(archivo);
             Documento doc = new Documento(archivo,archivo.getName(),"java",documentos.size()+1);
-            documentos.add(doc);
-            opened = doc.getId();
+            documentos.put(documentos.size(), doc);
+            opened = documentos.size()-1;
+            createList();
             JOptionPane.showMessageDialog(null,"guardado");
         }
-        nuevoDocumento();
+
     }
 
     private void save(){
@@ -340,5 +341,14 @@ public class IdeTriste extends JFrame {
         }catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    private void createList(){
+        String[] list = new String[documentos.size()];
+        for(int i = 0; i < documentos.size(); i++){
+            list[i]=documentos.get(i).getNombre();
+        }
+        //lista = new JList(list);
+        listaScroll = new JList(list);
     }
 }
